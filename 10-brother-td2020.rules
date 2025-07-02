@@ -1,0 +1,1 @@
+KERNEL=="lp*", ATTRS{idVendor}=="04f9", ATTRS{idProduct}=="2055", SYMLINK+="usb/td2020", MODE="0666"

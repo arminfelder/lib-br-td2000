@@ -9,22 +9,22 @@ namespace td2000
 {
     namespace commands
     {
-        constexpr std::array<std::uint8_t,1> invalidate{0x00};
-        constexpr std::array<std::uint8_t,2> initialize{0x1B,0x40};
-        constexpr std::array<std::uint8_t,3> status_information_request{0x1B,0x69,0x53};
-        constexpr std::array<std::uint8_t,3> switch_dynamic_command_mode{0x1B,0x69,0x61};
-        constexpr std::array<std::uint8_t,5> additional_media_information{0x1B,0x69,0x55,0x77,0x01};
-        constexpr std::array<std::uint8_t,3> print_information{0x1B,0x69,0x7A};
-        constexpr std::array<std::uint8_t,3> various_mode_settings{0x1B,0x69,0x4D};
-        constexpr std::array<std::uint8_t,3> specify_margin_amount{0x1B,0x69,0x64};
-        constexpr std::array<std::uint8_t,1> select_compression_mode{0x4D};
-        constexpr std::array<std::uint8_t,1> raster_graphics_transfer{0x67};
-        constexpr std::array<std::uint8_t,1> zero_raster_graphics{0x5A};
-        constexpr std::array<std::uint8_t,1> print{0x0C};
-        constexpr std::array<std::uint8_t,1> print_with_feeding{0x1A};
+        constexpr std::array<uint8_t,1> invalidate{0x00};
+        constexpr std::array<uint8_t,2> initialize{0x1B,0x40};
+        constexpr std::array<uint8_t,3> status_information_request{0x1B,0x69,0x53};
+        constexpr std::array<uint8_t,3> switch_dynamic_command_mode{0x1B,0x69,0x61};
+        constexpr std::array<uint8_t,5> additional_media_information{0x1B,0x69,0x55,0x77,0x01};
+        constexpr std::array<uint8_t,3> print_information{0x1B,0x69,0x7A};
+        constexpr std::array<uint8_t,3> various_mode_settings{0x1B,0x69,0x4D};
+        constexpr std::array<uint8_t,3> specify_margin_amount{0x1B,0x69,0x64};
+        constexpr std::array<uint8_t,1> select_compression_mode{0x4D};
+        constexpr std::array<uint8_t,1> raster_graphics_transfer{0x67};
+        constexpr std::array<uint8_t,1> zero_raster_graphics{0x5A};
+        constexpr std::array<uint8_t,1> print{0x0C};
+        constexpr std::array<uint8_t,1> print_with_feeding{0x1A};
     }
 
-    enum class ModelCode : std::uint8_t
+    enum class ModelCode : uint8_t
     {
         Td2000 = 0x33,
         Td2120N = 0x35,
@@ -36,20 +36,20 @@ namespace td2000
         Td2135Nwb = 0x48,
     };
 
-    enum class MediaType : std::uint8_t
+    enum class MediaType : uint8_t
     {
         NoMedia = 0x00,
-        ContinuousLengthTape = 0x4A,
+        ContinuousLengthTape = 0x0A,
         DieCutLabels = 0x4B,
     };
 
-    enum class CompressionMode : std::uint8_t
+    enum class CompressionMode : uint8_t
     {
         NoCompression = 0x00,
         Compression = 0x02,
     };
 
-    enum class StatusType : std::uint8_t
+    enum class StatusType : uint8_t
     {
         ReplyToStatusRequest = 0x00,
         PrintingCompleted = 0x01,
@@ -60,13 +60,13 @@ namespace td2000
         PhaseChange = 0x06
     };
 
-    enum class Phase : std::uint8_t
+    enum class Phase : uint8_t
     {
         ReceivingState = 0x00,
         PrintingState = 0x01
     };
 
-    enum class NotificationNumber : std::uint8_t
+    enum class NotificationNumber : uint8_t
     {
         NotAvailable = 0x00,
         CoolingStarted = 0x03,
@@ -77,7 +77,7 @@ namespace td2000
         FinishedPrinterPaused = 0x08
     };
 
-    enum class BatteryLevel : std::uint8_t
+    enum class BatteryLevel : uint8_t
     {
         Full = 0x00,
         Half = 0x01,
@@ -86,13 +86,13 @@ namespace td2000
         AcAdapterInUse = 0x04,
     };
 
-    enum class ContinuosLengthTape : std::uint8_t
+    enum class ContinuosLengthTape : uint8_t
     {
         _57MM,
         _58MM
     };
 
-    enum class DieCutLabels : std::uint8_t
+    enum class DieCutLabels : uint8_t
     {
         _51x26MM,
         _30x30MM,
@@ -103,20 +103,20 @@ namespace td2000
         _60x60MM
     };
 
-    enum class CommandMode : std::uint8_t
+    enum class CommandMode : uint8_t
     {
         ESCP = 0x00,
         Raster = 0x01,
         PTouch = 0x03
     };
 
-    enum class PageType : std::uint8_t
+    enum class PageType : uint8_t
     {
         startingPage,
         otherPage
     };
 
-    enum class PrintInfoFlags : std::uint8_t
+    enum class PrintInfoFlags : uint8_t
     {
         pi_kind = 0x02,
         pi_width = 0x04,
@@ -129,54 +129,54 @@ namespace td2000
     {
         struct
         {
-            std::uint8_t validFields:8;
-            std::uint8_t mediaType:8;
-            std::uint8_t mediaWith:8;
-            std::uint8_t mediaLength:8;
-            std::uint8_t rasterNumber[4];
+            uint8_t validFields:8;
+            uint8_t mediaType:8;
+            uint8_t mediaWith:8;
+            uint8_t mediaLength:8;
+            uint8_t rasterNumber[4];
             PageType pageType;
-            std::uint8_t :8;
+            uint8_t :8;
         } __attribute__((packed));
-        std::array<std::uint8_t, 10> raw;
+        std::array<uint8_t, 10> raw;
     };
 
     union ErrorInformation1
     {
         struct
         {
-            std::uint8_t noMedia : 1;
-            std::uint8_t endOfMedia : 1;
-            std::uint8_t  : 1;
-            std::uint8_t  : 1;
-            std::uint8_t printerInUser;
-            std::uint8_t  : 1;
-            std::uint8_t  : 1;
-            std::uint8_t  : 1;
+            uint8_t noMedia : 1;
+            uint8_t endOfMedia : 1;
+            uint8_t  : 1;
+            uint8_t  : 1;
+            uint8_t printerInUser;
+            uint8_t  : 1;
+            uint8_t  : 1;
+            uint8_t  : 1;
         } __attribute__((packed));
 
-        std::uint8_t raw;
+        uint8_t raw;
     };
 
     union ErrorInformation2
     {
         struct
         {
-            std::uint8_t replacingMedia : 1;
-            std::uint8_t  : 1;
-            std::uint8_t communicationError : 1;
-            std::uint8_t  : 1;
-            std::uint8_t coverOpen : 1;
-            std::uint8_t  : 1;
-            std::uint8_t mediaCannotBeFed : 1;
-            std::uint8_t systemError : 1;
+            uint8_t replacingMedia : 1;
+            uint8_t  : 1;
+            uint8_t communicationError : 1;
+            uint8_t  : 1;
+            uint8_t coverOpen : 1;
+            uint8_t  : 1;
+            uint8_t mediaCannotBeFed : 1;
+            uint8_t systemError : 1;
         } __attribute__((packed));
 
-        std::uint8_t raw;
+        uint8_t raw;
     };
 
     namespace MediaInfo
     {
-        constexpr std::array<std::uint8_t, 127> _58mm = {
+        constexpr std::array<uint8_t, 127> _58mm = {
             0x3F, 0x04, 0x3A, 0x00, 0x00, 0x3A, 0x04, 0x00, 0xB8, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
             0x00, 0x00, 0x00, 0x00, 0x00, 0xAA, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
             0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -192,68 +192,70 @@ namespace td2000
     {
         struct
         {
-            std::uint8_t :3;
+            uint8_t :3;
             bool rotate180:1;
             bool peeler:1;
-            std::uint8_t :3;
+            uint8_t :3;
         } __attribute__((packed));
-        std::uint8_t raw;
+        uint8_t raw;
     };
 
     union PrinterInfo
     {
         struct
         {
-            std::uint8_t printHeadMark : 8;
-            std::uint8_t size : 8;
-            std::uint8_t  : 8;
-            std::uint8_t seriesCode : 8;
+            uint8_t printHeadMark : 8;
+            uint8_t size : 8;
+            uint8_t  : 8;
+            uint8_t seriesCode : 8;
             ModelCode model;
-            std::uint8_t  : 8;
+            uint8_t  : 8;
             BatteryLevel batteryLevel : 8;
-            std::uint8_t  : 8;
+            uint8_t  : 8;
             ErrorInformation1 errorInformation1;
             ErrorInformation2 errorInformation2;
-            std::uint8_t mediaWidth : 8;
+            uint8_t mediaWidth : 8;
             MediaType mediaType;
-            std::uint8_t  : 8;
-            std::uint8_t  : 8;
-            std::uint8_t  : 8;
-            std::uint8_t mode : 8;
-            std::uint8_t  : 8;
-            std::uint8_t mediaLength : 8;
+            uint8_t  : 8;
+            uint8_t  : 8;
+            uint8_t  : 8;
+            uint8_t mode : 8;
+            uint8_t  : 8;
+            uint8_t mediaLength : 8;
             StatusType statusType;
             Phase phaseType : 8;
-            std::uint8_t phaseNumber_lo : 8;
-            std::uint8_t phaseNumber_hi : 8;
+            uint8_t phaseNumber_lo : 8;
+            uint8_t phaseNumber_hi : 8;
             NotificationNumber notificationNumber;
-            std::uint8_t  : 8;
-            std::uint8_t  : 8;
+            uint8_t  : 8;
+            uint8_t  : 8;
         } __attribute__((packed));
 
-        std::uint8_t raw[32];
+        uint8_t raw[32];
     };
 
     class Printer
     {
     public:
         Printer(const ModelCode& model, std::ostream& device);
+        bool write_sequence(const std::vector<std::uint8_t>& buffer);
         void initialize();
         void invalidate();
         void switch_dynamic_command_mode(CommandMode mode);
-        void additional_media_information(const std::array<std::uint8_t, 127>& media_info);
+        void additional_media_information(const std::array<uint8_t, 127>& media_info);
         void print_information(const PrintInfo& info);
         void various_mode_settings(const VariousModeSettings& settings);
         void specify_margin_amount(const uint16_t margin);
         void set_compression_mode(CompressionMode mode);
-        void graphics_transfer(const std::vector<std::uint8_t>& line);
+        void graphics_transfer(const std::vector<uint8_t>& line);
         void zero_raster_graphics();
         PrinterInfo status_information_request();
         void print();
         void print_with_feeding();
+        void print_pbm(const std::string& filename);
+        std::vector<uint8_t> load_pbm_with_padding(const std::string& filename);
+
     private:
-        std::vector<std::uint8_t> load_pbm_with_padding(const std::string &filename);
-        void write_sequence(const std::vector<std::uint8_t>& buffer);
         ModelCode model;
         std::ostream& device;
     };

@@ -1,16 +1,19 @@
-cmake_minimum_required(VERSION 3.31)
-project(td2020)
+cmake_minimum_required(VERSION 3.25.1)
+project(
+        TD2000
+        VERSION 0.1
+        DESCRIPTION ""
+        LANGUAGES CXX
+)
+
+if (CMAKE_BUILD_TYPE STREQUAL "Release")
+    set(CMAKE_CXX_FLAGS_RELEASE "-Ofast -march=native -flto")
+endif ()
+
+set(BUILD_SHARED_LIBS OFF)
 
 set(CMAKE_CXX_STANDARD 20)
 
-# Find required packages
-find_package(PkgConfig REQUIRED)
+add_subdirectory(src)
+add_subdirectory(apps)
 
-# Find Poppler with Cairo backend
-pkg_check_modules(POPPLER REQUIRED poppler-cpp)
-
-add_executable(td2020 main.cpp)
-
-target_link_libraries(td2020 ${POPPLER_LIBRARIES})
-target_include_directories(td2020 PRIVATE ${POPPLER_INCLUDE_DIRS})
-target_compile_options(td2020 PRIVATE ${POPPLER_CFLAGS_OTHER})
