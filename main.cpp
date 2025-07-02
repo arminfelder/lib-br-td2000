@@ -24,12 +24,6 @@ int fd;
 
 bool write_sequence(const std::vector<uint8_t>& buffer)
 {
-    // for (const auto& c : buffer)
-    // {
-    //     if (write(fd, &c, 1) != 1)
-    //         return false;
-    // }
-    auto size = buffer.size();
     if (write(fd, buffer.data(), buffer.size()) != buffer.size())
     {
         return false;
@@ -39,28 +33,26 @@ bool write_sequence(const std::vector<uint8_t>& buffer)
 
 void write_invalidate()
 {
-    const std::vector<uint8_t> buffer(200, 0);
-
-    write_sequence(buffer);
+    const std::vector<uint8_t> data(200, 0);
+    write_sequence(data);
 }
 
 void write_init_sequence()
 {
-    const std::vector<uint8_t> buffer(td2000::commands::initialize.begin(), td2000::commands::initialize.end());
-    write_sequence(buffer);
+    const std::vector<uint8_t> data(td2000::commands::initialize.begin(),td2000::commands::initialize.end());
+    write_sequence(data);
 }
 
 td2000::PrinterInfo get_status_request()
 {
-    const std::vector<uint8_t> status_request(td2000::commands::status_information_request.begin(),
-                                              td2000::commands::status_information_request.end());
+    const std::vector<uint8_t> data{
+        td2000::commands::status_information_request.begin(),td2000::commands::status_information_request.end()
+    };
 
     td2000::PrinterInfo printer_info{};
-    if (write_sequence(status_request))
+    if (write_sequence(data))
     {
-        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-        auto read_bytes = read(fd, printer_info.raw, 32);
-        if (read_bytes != 32)
+        if (const auto read_bytes = read(fd, printer_info.raw, sizeof(printer_info.raw)); read_bytes != sizeof(printer_info.raw))
         {
             std::cerr << "Failed to read printer status!\n";
             std::cerr << errno << '\n';
@@ -74,11 +66,11 @@ td2000::PrinterInfo get_status_request()
 
 void write_switch_dynamic_mode(td2000::CommandMode mode)
 {
-    const std::vector<uint8_t> mode_request = {
-        0x1B, 0x69, 0x61,
-        static_cast<uint8_t>(mode)
+    std::vector<uint8_t> data = {
+        td2000::commands::switch_dynamic_command_mode.begin(), td2000::commands::switch_dynamic_command_mode.end(),
     };
-    write_sequence(mode_request);
+    data.push_back(static_cast<uint8_t>(mode));
+    write_sequence(data);
 }
 
 void write_additional_media(const std::vector<uint8_t>& media_info)
@@ -88,46 +80,53 @@ void write_additional_media(const std::vector<uint8_t>& media_info)
         std::cerr << "Media info must be 127 bytes long!\n";
         return;
     }
-    const std::vector<uint8_t> media_info_command = {
+    std::vector<uint8_t> data = {
         td2000::commands::additional_media_information.begin(), td2000::commands::additional_media_information.end()
     };
 
-    write_sequence(media_info_command);
-    write_sequence(media_info);
+    data.insert(data.end(), media_info.begin(), media_info.end());
+    write_sequence(data);
 }
 
 void write_print_info(const td2000::PrintInfo& info)
 {
-    const std::vector<uint8_t> label_info = {
-        0x1B, 0x69, 0x7A,
+    std::vector<uint8_t> data = {
+        td2000::commands::print_information.begin(), td2000::commands::print_information.end()
     };
-    const std::vector<uint8_t> buffer(info.raw.begin(), info.raw.end());
-    write_sequence(label_info);
-    write_sequence(buffer);
+
+    data.insert(data.end(), info.raw.begin(), info.raw.end());
+    data.insert(data.end(),info.raw.begin(),info.raw.end());
+    write_sequence(data);
 }
 
-void write_various_mode_settings()
+void write_various_mode_settings(const td2000::VariousModeSettings& settings)
 {
-    const std::vector<uint8_t> label_info = {
-        0x1B, 0x69, 0x4D, 0x00
+    std::vector<uint8_t> data = {
+        td2000::commands::various_mode_settings.begin(), td2000::commands::various_mode_settings.end()
     };
-    write_sequence(label_info);
+
+    data.push_back(settings.raw);
+    write_sequence(data);
 }
 
-void write_specify_margin_amount()
+void write_specify_margin_amount(const uint16_t margin)
 {
-    const std::vector<uint8_t> label_info = {
-        0x1B, 0x69, 0x64, 24, 0x00
+    std::vector<uint8_t> data = {
+        td2000::commands::specify_margin_amount.begin(), td2000::commands::specify_margin_amount.end()
     };
-    write_sequence(label_info);
+    data.push_back(margin);
+    data.push_back(margin >> 8);
+
+    write_sequence(data);
 }
 
-void write_set_compression_mode()
+void write_set_compression_mode(const td2000::CompressionMode mode)
 {
-    const std::vector<uint8_t> label_info = {
-        0x4D, 0x00
+    std::vector<uint8_t> data = {
+        td2000::commands::select_compression_mode.begin(), td2000::commands::select_compression_mode.end()
     };
-    write_sequence(label_info);
+    data.push_back(static_cast<uint8_t>(mode));
+    write_sequence(data);
 }
 
 void write_graphics_transfer(const std::vector<uint8_t>& line)
@@ -135,8 +134,18 @@ void write_graphics_transfer(const std::vector<uint8_t>& line)
     const std::vector<uint8_t> buffer = {
         0x67, 0x00, 56
     };
-    write_sequence(buffer);
-    write_sequence(line);
+   // write_sequence(buffer);
+   // write_sequence(line);
+
+    std::vector<uint8_t> data = {
+        td2000::commands::raster_graphics_transfer.begin(), td2000::commands::raster_graphics_transfer.end()
+    };
+
+    data.push_back(0x00);
+    data.push_back(56);
+    data.insert(data.end(), line.begin(), line.end());
+
+    write_sequence(data);
 }
 
 void write_image(const std::vector<uint8_t>& data)
@@ -153,26 +162,26 @@ void write_image(const std::vector<uint8_t>& data)
 
 void write_zero_raster_graphics()
 {
-    const std::vector<uint8_t> buffer = {
-        0x5A
+    const std::vector<uint8_t> data = {
+        td2000::commands::zero_raster_graphics.begin(), td2000::commands::zero_raster_graphics.end()
     };
-    write_sequence(buffer);
+    write_sequence(data);
 }
 
 void write_print_command()
 {
-    const std::vector<uint8_t> buffer = {
-        0x0C
+    const std::vector<uint8_t> data = {
+        td2000::commands::print.begin(), td2000::commands::print.end()
     };
-    write_sequence(buffer);
+    write_sequence(data);
 }
 
 void write_print_command_with_feeding()
 {
-    const std::vector<uint8_t> buffer = {
-        0x1A
+    const std::vector<uint8_t> data = {
+        td2000::commands::print_with_feeding.begin(), td2000::commands::print_with_feeding.end()
     };
-    write_sequence(buffer);
+    write_sequence(data);
 }
 
 
@@ -226,32 +235,30 @@ std::vector<uint8_t> load_pbm_with_padding(const std::string& filename)
     return pixels;
 }
 
-std::vector<std::vector<uint8_t>> chessboard(const int size)
+std::vector<uint8_t> generate_chessboard_pattern(const int width, const int height)
 {
-    std::vector<std::vector<uint8_t>> pixels;
-
-    const auto lines = size / 56;
+    constexpr auto lineHeight = 4;
+    const auto lines = height;
+    std::vector<uint8_t> pixels(lines * width); // Reserve space for efficiency
 
     bool flip = false;
     for (auto i = 0; i < lines; i++)
     {
-        if (i % 8 == 0)
+        if (i % (lineHeight) == 0)
         {
             flip = !flip;
         }
-        auto line = std::vector<uint8_t>(56);
-        for (auto j = 0; j < 56; j++)
+        for (auto j = 0; j < width; j++)
         {
             if (flip)
             {
-                line[j] = 0xF0;
+                pixels.push_back(0xF0);
             }
             else
             {
-                line[j] = 0x0F;
+                pixels.push_back(0x0F);
             }
         }
-        pixels.push_back(line);
     }
 
 
@@ -345,38 +352,10 @@ int main(const int argc, char** argv)
 
     constexpr auto linewidth = 56;
     const auto lines = pbm.size()/linewidth;
-    pixels.reserve(lines * linewidth); // Reserve space for efficiency
-
-    constexpr auto lineheigth = 4;
-
-    bool flip = false;
-    for (auto i = 0; i < lines; i++)
-    {
-        if (i % (lineheigth) == 0)
-        {
-            flip = !flip;
-        }
-        for (auto j = 0; j < linewidth; j++)
-        {
-            if (flip)
-            {
-                pixels.push_back(0xF0);
-            }
-            else
-            {
-                pixels.push_back(0x0F);
-            }
-        }
-    }
-
-    //auto compressed = compress_packbits(pixels);
-    auto compressed = compress_packbits(pbm);
 
     write_invalidate();
     write_init_sequence();
     write_switch_dynamic_mode(td2000::CommandMode::Raster);
-    write_additional_media(std::vector<uint8_t>(td2000::_58mm.begin(), td2000::_58mm.end()));
-
     get_status_request();
 
     td2000::PrintInfo print_info{};
@@ -390,9 +369,10 @@ int main(const int argc, char** argv)
 
 
     write_print_info(print_info);
-    write_various_mode_settings();
-    write_additional_media(std::vector<uint8_t>(td2000::_58mm.begin(), td2000::_58mm.end()));
-    write_set_compression_mode();
+    constexpr td2000::VariousModeSettings various{};
+    write_various_mode_settings(various);
+    write_additional_media(std::vector<uint8_t>(td2000::MediaInfo::_58mm.begin(), td2000::MediaInfo::_58mm.end()));
+    write_set_compression_mode(td2000::CompressionMode::NoCompression);
 
 
     for (int i = 0; i < pbm.size(); i += linewidth) {
